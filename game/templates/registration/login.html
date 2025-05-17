@@ -2,41 +2,180 @@
 
 {% block title %}Login - Bug Blaster{% endblock %}
 
+{% block extra_css %}
+<style>
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+    }
+
+    @keyframes slideIn {
+        from { transform: translateY(-20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes glow {
+        0% { box-shadow: 0 0 5px rgba(52, 152, 219, 0.5); }
+        50% { box-shadow: 0 0 20px rgba(52, 152, 219, 0.8); }
+        100% { box-shadow: 0 0 5px rgba(52, 152, 219, 0.5); }
+    }
+
+    .login-container {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+
+    .login-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(52, 152, 219, 0.1);
+        padding: 40px;
+        width: 100%;
+        max-width: 400px;
+        animation: slideIn 0.5s ease-out;
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .login-header h2 {
+        color: #2c3e50;
+        font-size: 2.2em;
+        margin-bottom: 10px;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    .login-header p {
+        color: #7f8c8d;
+        font-size: 1.1em;
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    .form-label {
+        color: #2c3e50;
+        font-weight: 600;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-control {
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 12px 15px;
+        font-size: 1.1em;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: #3498db;
+        box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        animation: glow 2s infinite;
+    }
+
+    .btn-login {
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 12px 20px;
+        font-size: 1.2em;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        width: 100%;
+        transition: all 0.3s ease;
+    }
+
+    .btn-login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        background: linear-gradient(135deg, #2980b9, #3498db);
+    }
+
+    .alert-danger {
+        background: rgba(231, 76, 60, 0.1);
+        border: 2px solid #e74c3c;
+        color: #c0392b;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 25px;
+        animation: slideIn 0.5s ease-out;
+    }
+
+    .back-link {
+        text-align: center;
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 2px solid #f0f2f5;
+    }
+
+    .back-link a {
+        color: #3498db;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .back-link a:hover {
+        color: #2980b9;
+        text-decoration: underline;
+    }
+
+    .game-icon {
+        font-size: 3em;
+        margin-bottom: 15px;
+        animation: float 3s ease-in-out infinite;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-4">
-        <div class="card shadow">
-            <div class="card-body">
-                <h2 class="text-center mb-4">Login</h2>
-                
-                <form method="post">
-                    {% csrf_token %}
-                    
-                    {% if form.errors %}
-                    <div class="alert alert-danger">
-                        Your username and password didn't match. Please try again.
-                    </div>
-                    {% endif %}
-                    
-                    <div class="mb-3">
-                        <label for="id_username" class="form-label">Username</label>
-                        <input type="text" name="username" id="id_username" class="form-control" required>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="id_password" class="form-label">Password</label>
-                        <input type="password" name="password" id="id_password" class="form-control" required>
-                    </div>
-                    
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary">Login</button>
-                    </div>
-                </form>
-                
-                <div class="text-center mt-3">
-                    <p>Don't have an account? <a href="{% url 'game:index' %}">Go back to home</a></p>
-                </div>
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="game-icon">🎮</div>
+            <h2>Welcome Back!</h2>
+            <p>Ready to blast some bugs?</p>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+            <div class="alert alert-danger">
+                <strong>Oops!</strong> Your username and password didn't match. Please try again.
             </div>
+            {% endif %}
+            
+            <div class="form-group">
+                <label for="id_username" class="form-label">👤 Username</label>
+                <input type="text" name="username" id="id_username" class="form-control" required 
+                       placeholder="Enter your username">
+            </div>
+            
+            <div class="form-group">
+                <label for="id_password" class="form-label">🔒 Password</label>
+                <input type="password" name="password" id="id_password" class="form-control" required 
+                       placeholder="Enter your password">
+            </div>
+            
+            <button type="submit" class="btn btn-login">🚀 Login to Play</button>
+        </form>
+        
+        <div class="back-link">
+            <p>Don't have an account? <a href="{% url 'game:index' %}">Return to Home</a></p>
         </div>
     </div>
 </div>

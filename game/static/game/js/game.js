@@ -5,17 +5,29 @@ class Bug {
         this.y = y;
         this.width = 40;
         this.height = 40;
-        this.speed = type === 'fast' ? 3 : 1;
+        this.speed = type === 'fast' ? 4 : 1.5;
         this.health = type === 'armored' ? 2 : 1;
         this.points = type === 'fast' ? 3 : type === 'armored' ? 5 : 1;
         this.direction = Math.random() * Math.PI * 2;
         this.canvasWidth = canvasWidth;
         this.canvasHeight = canvasHeight;
+        this.lastDirectionChange = 0;
+        this.directionChangeInterval = 2000;
     }
 
-    update() {
-        this.x += Math.cos(this.direction) * this.speed;
-        this.y += Math.sin(this.direction) * this.speed;
+    update(currentTime) {
+        // Change direction periodically
+        if (currentTime - this.lastDirectionChange > this.directionChangeInterval) {
+            this.direction = Math.random() * Math.PI * 2;
+            this.lastDirectionChange = currentTime;
+        }
+
+        const newX = this.x + Math.cos(this.direction) * this.speed;
+        const newY = this.y + Math.sin(this.direction) * this.speed;
+        
+        // Update position
+        this.x = newX;
+        this.y = newY;
         
         // Bounce off walls
         if (this.x < 0 || this.x > this.canvasWidth - this.width) {
@@ -27,10 +39,25 @@ class Bug {
     }
 
     draw(ctx) {
+        // Draw bug body
         ctx.fillStyle = this.type === 'fast' ? '#ff0000' : 
                        this.type === 'armored' ? '#0000ff' : '#00ff00';
         ctx.beginPath();
         ctx.arc(this.x + this.width/2, this.y + this.height/2, this.width/2, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Add some details to make bugs more interesting
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(this.x + this.width/2, this.y + this.height/2, this.width/2 - 2, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // Add eyes
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(this.x + this.width/3, this.y + this.height/3, 4, 0, Math.PI * 2);
+        ctx.arc(this.x + this.width*2/3, this.y + this.height/3, 4, 0, Math.PI * 2);
         ctx.fill();
     }
 }
@@ -47,18 +74,53 @@ class Game {
         this.timer = null;
         this.isRunning = false;
         this.isPaused = false;
+        this.minBugs = 3;
+        this.maxBugs = 7;
+        this.lastUpdateTime = 0;
 
         // UI Elements
         this.startButton = document.getElementById('startButton');
         this.pauseButton = document.getElementById('pauseButton');
         this.resumeButton = document.getElementById('resumeButton');
+        this.quitButton = document.getElementById('quitButton');
         this.pauseOverlay = document.getElementById('pauseOverlay');
 
         // Event Listeners
         this.startButton.addEventListener('click', () => this.startGame());
         this.pauseButton.addEventListener('click', () => this.pauseGame());
         this.resumeButton.addEventListener('click', () => this.resumeGame());
+        this.quitButton.addEventListener('click', () => this.quitGame());
         this.canvas.addEventListener('click', (e) => this.handleClick(e));
+    }
+
+    quitGame() {
+        if (!this.isRunning) return;
+        
+        if (confirm('Are you sure you want to quit the game? Your current score will be lost.')) {
+            this.cleanup();
+            this.resetUI();
+            alert('Game quit. Your score was: ' + this.score);
+        }
+    }
+
+    cleanup() {
+        this.isRunning = false;
+        this.isPaused = false;
+        clearInterval(this.gameLoop);
+        clearInterval(this.spawnInterval);
+        clearInterval(this.timer);
+        this.bugs = [];
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+
+    resetUI() {
+        this.startButton.disabled = false;
+        this.pauseButton.disabled = true;
+        this.quitButton.disabled = true;
+        this.pauseOverlay.classList.remove('active');
+        this.score = 0;
+        this.timeLeft = 60;
+        this.updateUI();
     }
 
     startGame() {
@@ -73,12 +135,19 @@ class Game {
         
         this.startButton.disabled = true;
         this.pauseButton.disabled = false;
+        this.quitButton.disabled = false;
         
-        // Spawn bugs every 2 seconds
-        this.spawnInterval = setInterval(() => this.spawnBug(), 2000);
+        // Spawn initial bugs
+        for (let i = 0; i < this.minBugs; i++) {
+            this.spawnBug();
+        }
+        
+        // Spawn bugs more frequently
+        this.spawnInterval = setInterval(() => this.maintainBugCount(), 1000);
         
         // Start game loop
-        this.gameLoop = setInterval(() => this.update(), 1000/60);
+        this.lastUpdateTime = performance.now();
+        this.gameLoop = requestAnimationFrame((timestamp) => this.update(timestamp));
         
         // Start timer
         this.timer = setInterval(() => {
@@ -108,13 +177,26 @@ class Game {
         this.pauseButton.disabled = false;
     }
 
+    maintainBugCount() {
+        if (this.isPaused) return;
+        
+        // Spawn bugs until we reach the minimum count
+        while (this.bugs.length < this.minBugs && this.bugs.length < this.maxBugs) {
+            this.spawnBug();
+        }
+    }
+
     spawnBug() {
         if (this.isPaused) return;
         
         const types = ['basic', 'fast', 'armored'];
         const type = types[Math.floor(Math.random() * types.length)];
-        const x = Math.random() * (this.canvas.width - 40);
-        const y = Math.random() * (this.canvas.height - 40);
+        
+        // Calculate spawn position away from edges
+        const margin = 50;
+        const x = margin + Math.random() * (this.canvas.width - 2 * margin - 40);
+        const y = margin + Math.random() * (this.canvas.height - 2 * margin - 40);
+        
         this.bugs.push(new Bug(type, x, y, this.canvas.width, this.canvas.height));
     }
 
@@ -138,15 +220,23 @@ class Game {
         });
     }
 
-    update() {
-        if (this.isPaused) return;
+    update(timestamp) {
+        if (!this.isRunning) return;
         
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        if (!this.isPaused) {
+            const deltaTime = timestamp - this.lastUpdateTime;
+            this.lastUpdateTime = timestamp;
+            
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            
+            // Update and draw bugs
+            this.bugs.forEach(bug => {
+                bug.update(timestamp);
+                bug.draw(this.ctx);
+            });
+        }
         
-        this.bugs.forEach(bug => {
-            bug.update();
-            bug.draw(this.ctx);
-        });
+        this.gameLoop = requestAnimationFrame((timestamp) => this.update(timestamp));
     }
 
     updateUI() {
@@ -155,14 +245,8 @@ class Game {
     }
 
     endGame() {
-        this.isRunning = false;
-        this.isPaused = false;
-        clearInterval(this.gameLoop);
-        clearInterval(this.spawnInterval);
-        clearInterval(this.timer);
-        this.startButton.disabled = false;
-        this.pauseButton.disabled = true;
-        this.pauseOverlay.classList.remove('active');
+        this.cleanup();
+        this.resetUI();
         
         // Save score
         fetch('/game/save-score/', {
