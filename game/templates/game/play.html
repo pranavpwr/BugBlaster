@@ -1,0 +1,148 @@
+{% extends 'game/base.html' %}
+
+{% block title %}Play Bug Blaster{% endblock %}
+
+{% block extra_css %}
+<style>
+    .game-container {
+        position: relative;
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    #gameCanvas {
+        border: 3px solid #2c3e50;
+        border-radius: 10px;
+        background: #f8f9fa;
+        cursor: crosshair;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 800px;
+        height: auto;
+    }
+    
+    .game-ui {
+        position: absolute;
+        top: 30px;
+        left: 30px;
+        background: rgba(44, 62, 80, 0.9);
+        color: white;
+        padding: 15px 25px;
+        border-radius: 10px;
+        font-family: 'Courier New', monospace;
+        font-size: 1.2em;
+        font-weight: bold;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+    }
+    
+    .game-controls {
+        margin-top: 20px;
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+    }
+    
+    .game-button {
+        padding: 12px 24px;
+        font-size: 1.1em;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .game-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    .game-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+    }
+    
+    .game-overlay.active {
+        display: flex;
+    }
+    
+    .overlay-content {
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        text-align: center;
+    }
+    
+    .bug-info {
+        margin-top: 20px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        text-align: left;
+    }
+    
+    .bug-info h4 {
+        color: #2c3e50;
+        margin-bottom: 15px;
+    }
+    
+    .bug-info ul {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .bug-info li {
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="game-container">
+    <div class="game-ui">
+        <div>Score: <span id="score">0</span></div>
+        <div>Time: <span id="timer">60</span>s</div>
+    </div>
+    
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    
+    <div class="game-overlay" id="pauseOverlay">
+        <div class="overlay-content">
+            <h2>Game Paused</h2>
+            <p>Click Resume to continue playing</p>
+            <button class="btn btn-primary game-button" id="resumeButton">Resume Game</button>
+        </div>
+    </div>
+    
+    <div class="game-controls">
+        <button id="startButton" class="btn btn-primary game-button">Start Game</button>
+        <button id="pauseButton" class="btn btn-warning game-button" disabled>Pause</button>
+        <a href="{% url 'game:leaderboard' %}" class="btn btn-secondary game-button">Leaderboard</a>
+    </div>
+    
+    <div class="bug-info">
+        <h4>Bug Types:</h4>
+        <ul>
+            <li>🐞 <strong>Basic Bug</strong> - 1 point</li>
+            <li>🕷️ <strong>Fast Bug</strong> - 3 points</li>
+            <li>🐜 <strong>Armored Bug</strong> - 5 points (takes 2 hits)</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/game/js/game.js"></script>
+{% endblock %} 

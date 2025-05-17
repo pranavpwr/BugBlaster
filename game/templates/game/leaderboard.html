@@ -1,0 +1,41 @@
+{% extends 'game/base.html' %}
+
+{% block title %}Bug Blaster Leaderboard{% endblock %}
+
+{% block content %}
+<div class="text-center">
+    <h1 class="mb-4">Top Bug Blasters</h1>
+    
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Player</th>
+                    <th>Score</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for score in scores %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ score.player.username }}</td>
+                    <td>{{ score.score }}</td>
+                    <td>{{ score.date|date:"M d, Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4">No scores yet. Be the first to play!</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="mt-4">
+        <a href="{% url 'game:play' %}" class="btn btn-primary">Play Now!</a>
+        <a href="{% url 'game:index' %}" class="btn btn-secondary ms-2">Back to Home</a>
+    </div>
+</div>
+{% endblock %} 
