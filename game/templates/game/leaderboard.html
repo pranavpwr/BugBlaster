@@ -1,0 +1,220 @@
+{% extends 'game/base.html' %}
+
+{% block title %}Bug Blaster Leaderboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    @keyframes slideIn {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    .leaderboard-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 40px 20px;
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    .leaderboard-header {
+        text-align: center;
+        margin-bottom: 40px;
+        animation: slideIn 0.5s ease-out;
+    }
+
+    .leaderboard-header h1 {
+        color: #2c3e50;
+        font-size: 2.5em;
+        margin-bottom: 15px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .leaderboard-header p {
+        color: #7f8c8d;
+        font-size: 1.2em;
+    }
+
+    .leaderboard-table {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        animation: slideIn 0.5s ease-out 0.2s backwards;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table thead th {
+        background: #3498db;
+        color: white;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 15px;
+        border: none;
+    }
+
+    .table tbody tr {
+        transition: all 0.3s ease;
+    }
+
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+        transform: scale(1.01);
+    }
+
+    .table td {
+        padding: 15px;
+        vertical-align: middle;
+        border-bottom: 1px solid #eee;
+    }
+
+    .rank-badge {
+        display: inline-block;
+        width: 30px;
+        height: 30px;
+        line-height: 30px;
+        text-align: center;
+        border-radius: 50%;
+        font-weight: bold;
+        color: white;
+    }
+
+    .rank-1 { background: #f1c40f; }
+    .rank-2 { background: #bdc3c7; }
+    .rank-3 { background: #e67e22; }
+    .rank-other { background: #3498db; }
+
+    .player-name {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .score-value {
+        font-weight: bold;
+        color: #27ae60;
+    }
+
+    .date-value {
+        color: #7f8c8d;
+        font-size: 0.9em;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #7f8c8d;
+        font-style: italic;
+    }
+
+    .action-buttons {
+        margin-top: 30px;
+        text-align: center;
+        animation: slideIn 0.5s ease-out 0.4s backwards;
+    }
+
+    .btn-play {
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        font-size: 1.1em;
+        border-radius: 25px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        animation: pulse 2s infinite;
+    }
+
+    .btn-play:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        background: linear-gradient(135deg, #2980b9, #3498db);
+        color: white;
+    }
+
+    .btn-home {
+        background: #f8f9fa;
+        color: #2c3e50;
+        border: 2px solid #e9ecef;
+        padding: 12px 30px;
+        font-size: 1.1em;
+        border-radius: 25px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-home:hover {
+        background: #e9ecef;
+        color: #2c3e50;
+        transform: translateY(-2px);
+    }
+
+    .trophy-icon {
+        font-size: 2em;
+        margin-bottom: 10px;
+        animation: pulse 2s infinite;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="leaderboard-container">
+    <div class="leaderboard-header">
+        <div class="trophy-icon">🏆</div>
+        <h1>Top Bug Blasters</h1>
+        <p>Can you make it to the top?</p>
+    </div>
+    
+    <div class="leaderboard-table">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Player</th>
+                    <th>Score</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for score in scores %}
+                <tr>
+                    <td>
+                        <span class="rank-badge rank-{% if forloop.counter <= 3 %}{{ forloop.counter }}{% else %}other{% endif %}">
+                            {{ forloop.counter }}
+                        </span>
+                    </td>
+                    <td class="player-name">{{ score.player.username }}</td>
+                    <td class="score-value">{{ score.score }}</td>
+                    <td class="date-value">{{ score.date|date:"M d, Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="empty-state">
+                        <div class="trophy-icon">🎮</div>
+                        <p>No scores yet. Be the first to play!</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="action-buttons">
+        <a href="{% url 'game:play' %}" class="btn btn-play">🚀 Play Now!</a>
+        <a href="{% url 'game:index' %}" class="btn btn-home ms-3">🏠 Back to Home</a>
+    </div>
+</div>
+{% endblock %} 

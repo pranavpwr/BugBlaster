@@ -1,0 +1,233 @@
+{% extends 'game/base.html' %}
+
+{% block title %}Play Bug Blaster{% endblock %}
+
+{% block extra_css %}
+<style>
+    .game-container {
+        position: relative;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 20px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+    
+    #gameCanvas {
+        border: 4px solid #2c3e50;
+        border-radius: 15px;
+        background: #ffffff;
+        cursor: crosshair;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        width: 100%;
+        max-width: 800px;
+        height: auto;
+        transition: all 0.3s ease;
+    }
+    
+    #gameCanvas:hover {
+        transform: scale(1.01);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+    
+    .game-ui {
+        position: absolute;
+        top: 40px;
+        left: 40px;
+        background: rgba(44, 62, 80, 0.95);
+        color: white;
+        padding: 20px 30px;
+        border-radius: 15px;
+        font-family: 'Courier New', monospace;
+        font-size: 1.3em;
+        font-weight: bold;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+        backdrop-filter: blur(5px);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .game-ui div {
+        margin: 8px 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .game-ui span {
+        color: #3498db;
+        font-size: 1.2em;
+    }
+    
+    .game-controls {
+        margin-top: 30px;
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .game-button {
+        padding: 15px 30px;
+        font-size: 1.2em;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: bold;
+        border: none;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .game-button::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+    
+    .game-button:hover::after {
+        transform: translateX(0);
+    }
+    
+    .game-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    }
+    
+    .game-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.85);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+        backdrop-filter: blur(8px);
+    }
+    
+    .game-overlay.active {
+        display: flex;
+    }
+    
+    .overlay-content {
+        background: white;
+        padding: 40px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: scale(0.9); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    
+    .bug-info {
+        margin-top: 30px;
+        padding: 25px;
+        background: white;
+        border-radius: 15px;
+        text-align: left;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .bug-info h4 {
+        color: #2c3e50;
+        margin-bottom: 20px;
+        font-size: 1.4em;
+        border-bottom: 2px solid #3498db;
+        padding-bottom: 10px;
+    }
+    
+    .bug-info ul {
+        list-style: none;
+        padding: 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+    
+    .bug-info li {
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+    
+    .bug-info li:hover {
+        transform: translateX(5px);
+        background: #e9ecef;
+    }
+    
+    .bug-info li strong {
+        color: #2c3e50;
+        font-size: 1.1em;
+    }
+    
+    .game-title {
+        text-align: center;
+        margin-bottom: 30px;
+        color: #2c3e50;
+        font-size: 2.5em;
+        font-weight: bold;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="game-container">
+    <h1 class="game-title">Bug Blaster</h1>
+    
+    <div class="game-ui">
+        <div>🎯 Score: <span id="score">0</span></div>
+        <div>⏱️ Time: <span id="timer">60</span>s</div>
+    </div>
+    
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    
+    <div class="game-overlay" id="pauseOverlay">
+        <div class="overlay-content">
+            <h2>Game Paused</h2>
+            <p class="mb-4">Take a break, but don't let the bugs escape!</p>
+            <button class="btn btn-primary game-button" id="resumeButton">Resume Game</button>
+        </div>
+    </div>
+    
+    <div class="game-controls">
+        <button id="startButton" class="btn btn-primary game-button">🎮 Start Game</button>
+        <button id="pauseButton" class="btn btn-warning game-button" disabled>⏸️ Pause</button>
+        <button id="quitButton" class="btn btn-danger game-button" disabled>🚪 Quit</button>
+        <a href="{% url 'game:leaderboard' %}" class="btn btn-secondary game-button">🏆 Leaderboard</a>
+    </div>
+    
+    <div class="bug-info">
+        <h4>🐛 Bug Types & Points</h4>
+        <ul>
+            <li>🐞 <strong>Basic Bug</strong> - 1 point</li>
+            <li>🕷️ <strong>Fast Bug</strong> - 3 points</li>
+            <li>🐜 <strong>Armored Bug</strong> - 5 points (takes 2 hits)</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/game/js/game.js"></script>
+{% endblock %} 
