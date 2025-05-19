@@ -1,4 +1,4 @@
-# Bug Blaster 🐞
+# Bug Blaster 
 
 A fun, fast-paced web shooter game where players defend a digital lab from invading bugs! Built with Django and JavaScript.
 
@@ -6,7 +6,7 @@ A fun, fast-paced web shooter game where players defend a digital lab from invad
 
 * 🎯 Mouse or tap-to-shoot interface
 * ⏱️ 60-second timed gameplay
-* 🐞 Three types of bugs with different behaviors:
+*  Three types of bugs with different behaviors:
   * Basic Bug (1 point)
   * Fast Bug (3 points)
   * Armored Bug (5 points, takes 2 hits)
