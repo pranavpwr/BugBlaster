@@ -29,38 +29,3 @@ A fun, fast-paced web shooter game where players defend a digital lab from invad
 * Frontend: HTML5 Canvas, JavaScript
 * Styling: Bootstrap 5, CSS3
 * Database: SQLite (default)
-
-## Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/pranavpwr/BugBlaster.git
-cd BugBlaster
-```
-
-2. Create and activate a virtual environment:
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-3. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-4. Run migrations:
-```bash
-python manage.py migrate
-```
-
-5. Start the development server:
-```bash
-python manage.py runserver
-```
-
-6. Visit http://127.0.0.1:8000 in your browser
-
-## Contributing
-
-Feel free to submit issues and enhancement requests!
